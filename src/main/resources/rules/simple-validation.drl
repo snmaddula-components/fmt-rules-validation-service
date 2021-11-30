@@ -1,0 +1,75 @@
+package com.dtcc.fmt;
+
+import static com.dtcc.fmt.meta.domain.Rule.*;
+import java.math.BigDecimal;
+import com.dtcc.fmt.BusinessDayUtil;
+import com.dtcc.fmt.dto.Term;
+
+global com.dtcc.fmt.meta.domain.ErrorResponses errors;
+
+global com.dtcc.fmt.meta.domain.RuleResponses ruleResponses;
+
+dialect "java"
+
+rule "Repurchase Agreement Interest Rate cannot be '0'"
+    when
+        term : Term(repurchaseAgreementInterestRate == 0)
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_1));
+end
+
+rule "Repurchase Agreement Interest Rate must be between -99.9999999 and 99.999999"
+    when
+        term : Term(repurchaseAgreementInterestRate <= -99.999999 || repurchaseAgreementInterestRate >= 99.999999)
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_2));
+end
+
+rule "Repurchase Agreement Start Date must be a Valid Business Date"
+    when
+        term : Term(!BusinessDayUtil.isBusinessDay(repurchaseAgreementStartDate))
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_3));
+end
+
+rule "Repurchase Agreement End Date must be a Valid Business Date"
+    when
+        term : Term(!BusinessDayUtil.isBusinessDay(repurchaseAgreementEndDate))
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_4));
+end
+
+rule "Repurchase Agreement Start Date must be less than End Date"
+    when
+        term : Term(repurchaseAgreementStartDate.after(repurchaseAgreementEndDate))
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_5));
+end
+
+rule "Repurchase Agreement End Date must be greater than Start Date"
+    when
+        term : Term(repurchaseAgreementEndDate.before(repurchaseAgreementStartDate))
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_6));
+end
+
+rule "Repurchase Agreement Start Amount must be a multiple of 1 Million"
+    when
+        term : Term((repurchaseAgreementStartAmount % 1000000.0) != 0.0)
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_7));
+end
+
+rule "Repurchase Agreement Start Amount must be greater than or equal to $1 Million"
+    when
+        term : Term(repurchaseAgreementStartAmount < 1000000.0) // 1 Million
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_8));
+end
+
+rule "Repurchase Agreement Start Amount must be less than or equal to $2 Billion"
+    when
+        term : Term(repurchaseAgreementStartAmount > 2000000000.0) // 2 Billion
+    then
+        errors.addErrorResponse(ruleResponses.obtainResponse(RULE_9));
+end

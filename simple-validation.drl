@@ -1,0 +1,100 @@
+package com.dtcc.fmt;
+
+import java.math.BigDecimal;
+import com.dtcc.fmt.BusinessDayUtil;
+
+global com.dtcc.fmt.ErrorResponses errors;
+
+global com.dtcc.fmt.meta.RuleResponse ruleResponse;
+
+dialect "java"
+
+rule "Repurchase Agreement Interest Rate cannot be '0'"
+    when
+        term : Term(repurchaseAgreementInterestRate == 0)
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9081");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Interest Rate cannot be '0'");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement Interest Rate must be between -99.9999999 and 99.999999"
+    when
+        term : Term(repurchaseAgreementInterestRate <= -99.999999 || repurchaseAgreementInterestRate >= 99.999999)
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9082");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Interest Rate must be between -99.9999999 and 99.999999");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement Start Date must be a Valid Business Date"
+    when
+        term : Term(!BusinessDayUtil.isBusinessDay(repurchaseAgreementStartDate))
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9083");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Start Date must be a Valid Business Date");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement End Date must be a Valid Business Date"
+    when
+        term : Term(!BusinessDayUtil.isBusinessDay(repurchaseAgreementEndDate))
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9084");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement End Date must be a Valid Business Date");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement Start Date must be less than End Date"
+    when
+        term : Term(repurchaseAgreementStartDate.after(repurchaseAgreementEndDate))
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9085");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Start Date must be less than End Date");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement End Date must be greater than Start Date"
+    when
+        term : Term(repurchaseAgreementEndDate.before(repurchaseAgreementStartDate))
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9086");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement End Date must be greater than Start Date");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement Start Amount must be a multiple of 1 Million"
+    when
+        term : Term((repurchaseAgreementStartAmount % 1000000.0) != 0.0)
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9087");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Start Amount must be a multiple of 1 Million");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement Start Amount must be greater than or equal to $1 Million"
+    when
+        term : Term(repurchaseAgreementStartAmount < 1000000.0) // 1 Million
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9088");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Start Amount must be greater than or equal to $1 Million");
+        errors.addErrorResponse(errorResponse);
+end
+
+rule "Repurchase Agreement Start Amount must be less than or equal to $2 Billion"
+    when
+        term : Term(repurchaseAgreementStartAmount > 2000000000.0) // 2 Billion
+    then
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.addError("ErrorCode", "ROP-9089");
+        errorResponse.addError("ErrorResponse", "Repurchase Agreement Start Amount must be less than or equal to $2 Billion");
+        errors.addErrorResponse(errorResponse);
+end
